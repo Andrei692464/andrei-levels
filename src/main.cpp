@@ -35,7 +35,7 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
         if (menu && menu->getChildrenCount() > 0) {
             auto first = static_cast<CCNode*>(menu->getChildren()->objectAtIndex(0));
             CCSize size = first->getContentSize();
-            if (size.width < 20.f || size.height < 20.f) size = {90.f, 90.f};
+            if (size.width < 20.f || size.height < 20.f) size = CCSize(90.f, 90.f);
 
             auto btn = CCMenuItemSpriteExtra::create(
                 makeAndreiSprite(size), this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
@@ -47,3 +47,32 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
         }
 
         // fallback: buton sus, la mijloc
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+        auto topMenu = CCMenu::create();
+        topMenu->setPosition({winSize.width / 2.f, winSize.height - 22.f});
+        auto btn = CCMenuItemSpriteExtra::create(
+            ButtonSprite::create("Andrei123459 Levels", 200, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .6f),
+            this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
+        );
+        btn->setID("andrei-levels-button"_spr);
+        topMenu->addChild(btn);
+        this->addChild(topMenu, 10);
+        return true;
+    }
+
+    void onAndreiLevels(CCObject*) {
+        auto userID = Mod::get()->getSettingValue<int64_t>("user-id");
+        if (userID <= 0) {
+            FLAlertLayer::create(
+                "Setare lipsa",
+                "Pune <cy>User ID</c>-ul in setarile modului.",
+                "OK"
+            )->show();
+            return;
+        }
+
+        auto search = GJSearchObject::create(SearchType::UsersLevels, std::to_string(userID));
+        auto scene = LevelBrowserLayer::scene(search);
+        CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(.5f, scene));
+    }
+};
