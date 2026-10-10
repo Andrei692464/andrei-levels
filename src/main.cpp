@@ -39,7 +39,7 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
         if (!CreatorLayer::init()) return false;
 
         auto winSize = CCDirector::sharedDirector()->getWinSize();
-        const float S = 58.f;
+        const float S = 75.f;
 
         auto menu = CCMenu::create();
         menu->setID("andrei-levels-menu"_spr);
