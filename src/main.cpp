@@ -3,60 +3,55 @@
 
 using namespace geode::prelude;
 
-static CCNode* makeAndreiSprite(CCSize size) {
-    auto spr = ButtonSprite::create(
-        "", (int)size.width, true, "goldFont.fnt", "GJ_button_01.png", size.height, 1.f
-    );
-    auto cs = spr->getContentSize();
+static CCNode* makeAndreiTile(float S) {
+    auto node = CCNode::create();
+    node->setContentSize({S, S});
 
-    auto icon = SimplePlayer::create(1);
-    icon->setScale(cs.height * 0.45f / std::max(icon->getContentSize().height, 1.f));
-    icon->setPosition({cs.width / 2.f, cs.height * 0.66f});
-    spr->addChild(icon);
+    auto bg = CCSprite::createWithSpriteFrameName("GJ_button_01.png");
+    auto bs = bg->getContentSize();
+    bg->setScaleX(S / bs.width);
+    bg->setScaleY(S / bs.height);
+    bg->setPosition({S / 2.f, S / 2.f});
+    node->addChild(bg);
+
+    auto star = CCSprite::createWithSpriteFrameName("GJ_starsIcon_001.png");
+    if (star) {
+        star->setScale(S * 0.34f / star->getContentSize().height);
+        star->setPosition({S / 2.f, S * 0.70f});
+        node->addChild(star);
+    }
 
     auto name = CCLabelBMFont::create("Andrei123459", "goldFont.fnt");
-    name->limitLabelWidth(cs.width * 0.88f, .7f, .1f);
-    name->setPosition({cs.width / 2.f, cs.height * 0.32f});
-    spr->addChild(name);
+    name->limitLabelWidth(S * 0.9f, .5f, .1f);
+    name->setPosition({S / 2.f, S * 0.36f});
+    node->addChild(name);
 
     auto lvls = CCLabelBMFont::create("Levels", "goldFont.fnt");
-    lvls->limitLabelWidth(cs.width * 0.88f, .7f, .1f);
-    lvls->setPosition({cs.width / 2.f, cs.height * 0.15f});
-    spr->addChild(lvls);
+    lvls->limitLabelWidth(S * 0.9f, .5f, .1f);
+    lvls->setPosition({S / 2.f, S * 0.17f});
+    node->addChild(lvls);
 
-    return spr;
+    return node;
 }
 
 class $modify(AndreiCreatorLayer, CreatorLayer) {
     bool init() {
         if (!CreatorLayer::init()) return false;
 
-        auto menu = this->getChildByID("creator-buttons-menu");
-        if (menu && menu->getChildrenCount() > 0) {
-            auto first = static_cast<CCNode*>(menu->getChildren()->objectAtIndex(0));
-            CCSize size = first->getContentSize();
-            if (size.width < 20.f || size.height < 20.f) size = CCSize(90.f, 90.f);
-
-            auto btn = CCMenuItemSpriteExtra::create(
-                makeAndreiSprite(size), this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
-            );
-            btn->setID("andrei-levels-button"_spr);
-            menu->addChild(btn);
-            menu->updateLayout();
-            return true;
-        }
-
-        // fallback: buton sus, la mijloc
         auto winSize = CCDirector::sharedDirector()->getWinSize();
-        auto topMenu = CCMenu::create();
-        topMenu->setPosition({winSize.width / 2.f, winSize.height - 22.f});
+        const float S = 58.f;
+
+        auto menu = CCMenu::create();
+        menu->setID("andrei-levels-menu"_spr);
+        menu->setPosition({S / 2.f + 6.f, winSize.height / 2.f});
+
         auto btn = CCMenuItemSpriteExtra::create(
-            ButtonSprite::create("Andrei123459 Levels", 200, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .6f),
-            this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
+            makeAndreiTile(S), this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
         );
         btn->setID("andrei-levels-button"_spr);
-        topMenu->addChild(btn);
-        this->addChild(topMenu, 10);
+        menu->addChild(btn);
+
+        this->addChild(menu, 10);
         return true;
     }
 
