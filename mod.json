@@ -1,10 +1,7 @@
 {
-	"geode": "4.6.0",
+	"geode": "5.11.1",
 	"gd": {
-		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074",
-		"ios": "2.2074"
+		"win": "2.2081"
 	},
 	"id": "andrei123459.levels",
 	"name": "Andrei123459 Levels",
@@ -15,7 +12,7 @@
 		"user-id": {
 			"type": "int",
 			"name": "User ID (Andrei123459)",
-			"description": "The <cy>User ID</c> (not account ID) of Andrei123459. Used to load the levels he published.",
+			"description": "The <cy>User ID</c> (not account ID) used to load the levels.",
 			"default": 288956778,
 			"min": 0
 		}
