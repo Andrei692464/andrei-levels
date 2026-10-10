@@ -17,6 +17,8 @@ jobs:
     name: Package
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: geode-sdk/build-geode-mod/combine@main
         id: build
@@ -24,3 +26,11 @@ jobs:
         with:
           name: Build Output
           path: ${{ steps.build.outputs.build-output }}
+      - name: Publish latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FILE=$(find "${{ steps.build.outputs.build-output }}" -name "*.geode" | head -n 1)
+          cp "$FILE" andrei123459.levels.geode
+          gh release delete latest --cleanup-tag --yes --repo "${{ github.repository }}" || true
+          gh release create latest andrei123459.levels.geode --title "Latest build" --notes "Automatic build" --target "${{ github.sha }}" --repo "${{ github.repository }}"
