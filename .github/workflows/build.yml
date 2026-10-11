@@ -20,6 +20,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: geode-sdk/build-geode-mod/combine@main
         id: build
       - uses: actions/upload-artifact@v4
@@ -30,7 +31,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          VERSION=$(jq -r .version mod.json)
           FILE=$(find "${{ steps.build.outputs.build-output }}" -name "*.geode" | head -n 1)
           cp "$FILE" andrei123459.levels.geode
           gh release delete latest --cleanup-tag --yes --repo "${{ github.repository }}" || true
-          gh release create latest andrei123459.levels.geode --title "Latest build" --notes "Automatic build" --target "${{ github.sha }}" --repo "${{ github.repository }}"
+          gh release create latest andrei123459.levels.geode --title "$VERSION" --notes "Automatic build $VERSION" --target "${{ github.sha }}" --repo "${{ github.repository }}"
