@@ -1,5 +1,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/CreatorLayer.hpp>
+#include <Geode/modify/LevelSearchLayer.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/utils/web.hpp>
 #include <Geode/utils/async.hpp>
@@ -182,5 +183,133 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
         auto search = GJSearchObject::create(SearchType::UsersLevels, std::to_string(userID));
         auto scene = LevelBrowserLayer::scene(search);
         CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(.5f, scene));
+    }
+};
+
+// ---------------- Istoric cautari ----------------
+static std::vector<std::string> getSearchHistory() {
+    return Mod::get()->getSavedValue<std::vector<std::string>>("search-history", {});
+}
+
+static void addToSearchHistory(std::string text) {
+    // taiem spatiile de la capete
+    while (!text.empty() && text.front() == ' ') text.erase(text.begin());
+    while (!text.empty() && text.back() == ' ') text.pop_back();
+    if (text.empty()) return;
+
+    auto hist = getSearchHistory();
+    for (size_t i = 0; i < hist.size(); i++) {
+        if (hist[i] == text) {
+            hist.erase(hist.begin() + i);
+            break;
+        }
+    }
+    hist.insert(hist.begin(), text);
+    if (hist.size() > 20) hist.resize(20);
+    Mod::get()->setSavedValue("search-history", hist);
+}
+
+class SearchHistoryPopup : public Popup {
+protected:
+    LevelSearchLayer* m_searchLayer = nullptr;
+    std::vector<std::string> m_entries;
+
+    bool init(LevelSearchLayer* layer) {
+        if (!Popup::init(320.f, 270.f, "GJ_square01.png")) return false;
+        m_searchLayer = layer;
+        this->setTitle("Search History");
+
+        m_entries = getSearchHistory();
+
+        if (m_entries.empty()) {
+            auto empty = CCLabelBMFont::create("Nu ai cautat nimic inca", "bigFont.fnt");
+            empty->setScale(.45f);
+            m_mainLayer->addChildAtPosition(empty, Anchor::Center, ccp(0, 0));
+            return true;
+        }
+
+        size_t count = std::min<size_t>(m_entries.size(), 6);
+        for (size_t i = 0; i < count; i++) {
+            std::string label = m_entries[i];
+            if (label.size() > 28) label = label.substr(0, 25) + "...";
+
+            auto spr = ButtonSprite::create(
+                label.c_str(), 260, true, "bigFont.fnt", "GJ_button_01.png", 28.f, .55f
+            );
+            auto btn = CCMenuItemSpriteExtra::create(
+                spr, this, menu_selector(SearchHistoryPopup::onPick)
+            );
+            btn->setTag(static_cast<int>(i));
+            m_buttonMenu->addChildAtPosition(btn, Anchor::Top, ccp(0, -56.f - i * 32.f));
+        }
+
+        auto clearSpr = ButtonSprite::create("Sterge istoric", 140, true, "goldFont.fnt", "GJ_button_01.png", 26.f, .6f);
+        auto clearBtn = CCMenuItemSpriteExtra::create(
+            clearSpr, this, menu_selector(SearchHistoryPopup::onClear)
+        );
+        m_buttonMenu->addChildAtPosition(clearBtn, Anchor::Bottom, ccp(0, 24));
+
+        return true;
+    }
+
+    void onPick(CCObject* sender) {
+        int idx = static_cast<CCNode*>(sender)->getTag();
+        if (idx >= 0 && idx < static_cast<int>(m_entries.size()) && m_searchLayer) {
+            m_searchLayer->m_searchInput->setString(m_entries[idx]);
+        }
+        this->onClose(nullptr);
+    }
+
+    void onClear(CCObject*) {
+        Mod::get()->setSavedValue("search-history", std::vector<std::string>{});
+        this->onClose(nullptr);
+    }
+
+public:
+    static SearchHistoryPopup* create(LevelSearchLayer* layer) {
+        auto ret = new SearchHistoryPopup();
+        if (ret->init(layer)) {
+            ret->autorelease();
+            return ret;
+        }
+        delete ret;
+        return nullptr;
+    }
+};
+
+class $modify(AndreiSearchLayer, LevelSearchLayer) {
+    bool init(int type) {
+        if (!LevelSearchLayer::init(type)) return false;
+
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+
+        auto menu = CCMenu::create();
+        menu->setPosition({0.f, 0.f});
+        menu->setID("andrei-history-menu"_spr);
+
+        auto spr = ButtonSprite::create("Istoric", 70, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .7f);
+        auto btn = CCMenuItemSpriteExtra::create(
+            spr, this, menu_selector(AndreiSearchLayer::onAndreiHistory)
+        );
+        btn->setID("andrei-history-button"_spr);
+        btn->setPosition({45.f, winSize.height - 100.f});
+        menu->addChild(btn);
+
+        this->addChild(menu, 10);
+        return true;
+    }
+
+    void onAndreiHistory(CCObject*) {
+        if (auto popup = SearchHistoryPopup::create(this)) popup->show();
+    }
+
+    void onSearch(CCObject* sender) {
+        addToSearchHistory(std::string(m_searchInput->getString()));
+        LevelSearchLayer::onSearch(sender);
+    }
+
+    void onSearchUser(CCObject* sender) {
+        addToSearchHistory(std::string(m_searchInput->getString()));
+        LevelSearchLayer::onSearchUser(sender);
     }
 };
