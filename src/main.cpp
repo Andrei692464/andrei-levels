@@ -116,12 +116,48 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
     bool init() {
         if (!CreatorLayer::init()) return false;
 
+        // asteptam un cadru ca grila de butoane sa fie asezata, apoi punem butonul peste "The Map"
+        queueInMainThread([self = Ref(this)] {
+            self->placeAndreiButton();
+        });
+
+        checkForUpdate();
+        return true;
+    }
+
+    void placeAndreiButton() {
         auto winSize = CCDirector::sharedDirector()->getWinSize();
-        const float S = 75.f;
+
+        // cautam butonul "The Map"
+        CCNode* mapBtn = nullptr;
+        if (auto grid = this->getChildByID("creator-buttons-menu")) {
+            mapBtn = grid->getChildByID("map-button");
+            if (!mapBtn && grid->getChildrenCount() > 5) {
+                mapBtn = static_cast<CCNode*>(grid->getChildren()->objectAtIndex(5));
+            }
+        }
+
+        float S = 75.f;
+        CCPoint center = ccp(S / 2.f + 6.f, winSize.height / 2.f);
+
+        if (mapBtn && mapBtn->getParent()) {
+            auto parent = mapBtn->getParent();
+            auto bb = mapBtn->boundingBox();
+            auto bl = this->convertToNodeSpace(parent->convertToWorldSpace(bb.origin));
+            auto tr = this->convertToNodeSpace(parent->convertToWorldSpace(
+                ccp(bb.origin.x + bb.size.width, bb.origin.y + bb.size.height)
+            ));
+            float size = tr.x - bl.x;
+            if (size > 30.f && size < 250.f) {
+                S = size;
+                center = ccp((bl.x + tr.x) / 2.f, (bl.y + tr.y) / 2.f);
+                mapBtn->setVisible(false); // ascundem "The Map"
+            }
+        }
 
         auto menu = CCMenu::create();
         menu->setID("andrei-levels-menu"_spr);
-        menu->setPosition({S / 2.f + 6.f, winSize.height / 2.f});
+        menu->setPosition(center);
 
         auto btn = CCMenuItemSpriteExtra::create(
             makeAndreiTile(S), this, menu_selector(AndreiCreatorLayer::onAndreiLevels)
@@ -130,9 +166,6 @@ class $modify(AndreiCreatorLayer, CreatorLayer) {
         menu->addChild(btn);
 
         this->addChild(menu, 10);
-
-        checkForUpdate();
-        return true;
     }
 
     void onAndreiLevels(CCObject*) {
