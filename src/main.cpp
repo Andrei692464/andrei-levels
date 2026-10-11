@@ -87,10 +87,8 @@ static CCNode* makeAndreiTile(float S) {
     auto node = CCNode::create();
     node->setContentSize({S, S});
 
-    auto bg = CCSprite::createWithSpriteFrameName("GJ_button_01.png");
-    auto bs = bg->getContentSize();
-    bg->setScaleX(S / bs.width);
-    bg->setScaleY(S / bs.height);
+    auto bg = CCScale9Sprite::create("GJ_button_01.png", {0.f, 0.f, 40.f, 40.f});
+    bg->setContentSize({S, S});
     bg->setPosition({S / 2.f, S / 2.f});
     node->addChild(bg);
 
