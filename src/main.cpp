@@ -16,7 +16,6 @@
 #endif
 
 using namespace geode;
-using namespace geode::ui;
 using namespace cocos2d;
 
 struct MPState {
@@ -71,9 +70,17 @@ protected:
         m_mainLayer->addChildAtPosition(m_status, Anchor::Center, ccp(0, -15));
 
         auto loginNode = createButtonNode("Joaca");
+#if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
+        // CCMenuItemSpriteExtra::create: normal, selected, disabled, target, selector
+        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
+            loginNode, nullptr, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
+        );
+#else
+        // ButtonSprite / fallback: normal, selected, target, selector
         auto loginBtn = CC_MENU_ITEM_EXTRA::create(
             loginNode, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
         );
+#endif
         m_buttonMenu->addChildAtPosition(loginBtn, Anchor::Bottom, ccp(0, 30));
 
         return true;
@@ -139,9 +146,15 @@ protected:
         m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(0, 20));
 
         auto closeNode = createButtonNode("Inchide");
+#if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
+        auto closeBtn = CC_MENU_ITEM_EXTRA::create(
+            closeNode, nullptr, nullptr, this, menu_selector(MultiplayerPopup::onClose)
+        );
+#else
         auto closeBtn = CC_MENU_ITEM_EXTRA::create(
             closeNode, nullptr, this, menu_selector(MultiplayerPopup::onClose)
         );
+#endif
         m_buttonMenu->addChildAtPosition(closeBtn, Anchor::Bottom, ccp(0, 30));
 
         return true;
