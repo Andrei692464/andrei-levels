@@ -2,7 +2,15 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/ui/CCMenuItemSpriteExtra.hpp>
+
+#if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
+    #include <Geode/ui/CCMenuItemSpriteExtra.hpp>
+#elif __has_include(<Geode/ui/ButtonSprite.hpp>)
+    #include <Geode/ui/ButtonSprite.hpp>
+#else
+    #include <cocos2d.h>
+    using CCMenuItemSpriteExtra = cocos2d::CCMenuItemSprite;
+#endif
 
 using namespace geode;
 using namespace geode::ui;
