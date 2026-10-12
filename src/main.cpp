@@ -5,11 +5,14 @@
 
 #if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
     #include <Geode/ui/CCMenuItemSpriteExtra.hpp>
+    #define CC_MENU_ITEM_EXTRA CCMenuItemSpriteExtra
 #elif __has_include(<Geode/ui/ButtonSprite.hpp>)
     #include <Geode/ui/ButtonSprite.hpp>
+    #define CC_MENU_ITEM_EXTRA ButtonSprite
 #else
     #include <cocos2d.h>
-    using CCMenuItemSpriteExtra = cocos2d::CCMenuItemSprite;
+    using CCMenuItemSprite_Compat = cocos2d::CCMenuItemSprite;
+    #define CC_MENU_ITEM_EXTRA CCMenuItemSprite_Compat
 #endif
 
 using namespace geode;
@@ -36,14 +39,12 @@ static CCNode* createButtonNode(const char* text, const char* font = "goldFont.f
     if (!btn) {
         btn = CCSprite::create();
     }
-
     auto label = CCLabelBMFont::create(text, font);
     label->setScale(0.7f);
     label->setPosition(ccp(
         btn->getContentSize().width * 0.5f,
         btn->getContentSize().height * 0.5f
     ));
-
     btn->addChild(label);
     return btn;
 }
@@ -70,8 +71,8 @@ protected:
         m_mainLayer->addChildAtPosition(m_status, Anchor::Center, ccp(0, -15));
 
         auto loginNode = createButtonNode("Joaca");
-        auto loginBtn = CCMenuItemSpriteExtra::create(
-            loginNode, this, menu_selector(MultiplayerLoginPopup::onLogin)
+        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
+            loginNode, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
         );
         m_buttonMenu->addChildAtPosition(loginBtn, Anchor::Bottom, ccp(0, 30));
 
@@ -92,7 +93,6 @@ protected:
             this->setStatus("Numele trebuie sa aiba minim 2 caractere.");
             return;
         }
-
         if (name.size() > 20) {
             this->setStatus("Numele este prea lung (max 20).");
             return;
@@ -139,8 +139,8 @@ protected:
         m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(0, 20));
 
         auto closeNode = createButtonNode("Inchide");
-        auto closeBtn = CCMenuItemSpriteExtra::create(
-            closeNode, this, menu_selector(MultiplayerPopup::onClose)
+        auto closeBtn = CC_MENU_ITEM_EXTRA::create(
+            closeNode, nullptr, this, menu_selector(MultiplayerPopup::onClose)
         );
         m_buttonMenu->addChildAtPosition(closeBtn, Anchor::Bottom, ccp(0, 30));
 
@@ -161,7 +161,6 @@ public:
 
 static void openMultiplayer() {
     auto savedName = Mod::get()->getSavedValue<std::string>("mp-username", "");
-
     if (savedName.empty()) {
         if (auto p = MultiplayerLoginPopup::create()) p->show();
         return;
