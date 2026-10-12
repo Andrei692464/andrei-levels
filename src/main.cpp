@@ -2,7 +2,6 @@
 #include <Geode/Geode.hpp>
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/ui/ButtonSprite.hpp>
 #include <Geode/ui/CCMenuItemSpriteExtra.hpp>
 
 using namespace geode;
@@ -20,6 +19,25 @@ static std::string trimString(std::string value) {
     while (!value.empty() && value.front() == ' ') value.erase(value.begin());
     while (!value.empty() && value.back() == ' ') value.pop_back();
     return value;
+}
+
+// Helper care înlocuiește Geode/ui/ButtonSprite.hpp
+// pentru ca unele versiuni ale Geode nu mai au header-ul respectiv
+static CCNode* createButtonNode(const char* text, const char* font = "goldFont.fnt", const char* spriteName = "GJ_button_01.png") {
+    auto btn = CCSprite::create(spriteName);
+    if (!btn) {
+        btn = CCSprite::create();
+    }
+
+    auto label = CCLabelBMFont::create(text, font);
+    label->setScale(0.7f);
+    label->setPosition(ccp(
+        btn->getContentSize().width * 0.5f,
+        btn->getContentSize().height * 0.5f
+    ));
+
+    btn->addChild(label);
+    return btn;
 }
 
 class MultiplayerPopup;
@@ -43,9 +61,9 @@ protected:
         m_status->setScale(.7f);
         m_mainLayer->addChildAtPosition(m_status, Anchor::Center, ccp(0, -15));
 
-        auto loginSpr = ButtonSprite::create("Joaca", 140, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .7f);
+        auto loginNode = createButtonNode("Joaca");
         auto loginBtn = CCMenuItemSpriteExtra::create(
-            loginSpr, this, menu_selector(MultiplayerLoginPopup::onLogin)
+            loginNode, this, menu_selector(MultiplayerLoginPopup::onLogin)
         );
         m_buttonMenu->addChildAtPosition(loginBtn, Anchor::Bottom, ccp(0, 30));
 
@@ -112,9 +130,9 @@ protected:
         label->setScale(.7f);
         m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(0, 20));
 
-        auto closeSpr = ButtonSprite::create("Inchide", 140, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .7f);
+        auto closeNode = createButtonNode("Inchide");
         auto closeBtn = CCMenuItemSpriteExtra::create(
-            closeSpr, this, menu_selector(MultiplayerPopup::onClose)
+            closeNode, this, menu_selector(MultiplayerPopup::onClose)
         );
         m_buttonMenu->addChildAtPosition(closeBtn, Anchor::Bottom, ccp(0, 30));
 
