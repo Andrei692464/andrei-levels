@@ -50,13 +50,13 @@ static CCNode* createButtonNode(const char* text, const char* font = "goldFont.f
 
 class MultiplayerPopup;
 
-class MultiplayerLoginPopup : public Popup<> {
+class MultiplayerLoginPopup : public Popup {
 protected:
     TextInput* m_username = nullptr;
     CCLabelBMFont* m_status = nullptr;
     bool m_busy = false;
 
-    bool init() {
+    bool init() override {
         if (!Popup::init(320.f, 200.f, "GJ_square01.png")) return false;
         this->setTitle("Andrei123459 Multiplayer");
 
@@ -75,10 +75,15 @@ protected:
         auto loginBtn = CC_MENU_ITEM_EXTRA::create(
             loginNode, nullptr, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
         );
-#else
-        // ButtonSprite / fallback: normal, selected, target, selector
+#elif __has_include(<Geode/ui/ButtonSprite.hpp>)
+        // ButtonSprite::create: normal, selected, target, selector
         auto loginBtn = CC_MENU_ITEM_EXTRA::create(
             loginNode, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
+        );
+#else
+        // Fallback cocos2d::CCMenuItemSprite: 5 args
+        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
+            loginNode, nullptr, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
         );
 #endif
         m_buttonMenu->addChildAtPosition(loginBtn, Anchor::Bottom, ccp(0, 30));
@@ -132,9 +137,9 @@ public:
     }
 };
 
-class MultiplayerPopup : public Popup<> {
+class MultiplayerPopup : public Popup {
 protected:
-    bool init() {
+    bool init() override {
         if (!Popup::init(320.f, 220.f, "GJ_square01.png")) return false;
         this->setTitle("Andrei123459 Multiplayer");
 
@@ -150,9 +155,13 @@ protected:
         auto closeBtn = CC_MENU_ITEM_EXTRA::create(
             closeNode, nullptr, nullptr, this, menu_selector(MultiplayerPopup::onClose)
         );
-#else
+#elif __has_include(<Geode/ui/ButtonSprite.hpp>)
         auto closeBtn = CC_MENU_ITEM_EXTRA::create(
             closeNode, nullptr, this, menu_selector(MultiplayerPopup::onClose)
+        );
+#else
+        auto closeBtn = CC_MENU_ITEM_EXTRA::create(
+            closeNode, nullptr, nullptr, this, menu_selector(MultiplayerPopup::onClose)
         );
 #endif
         m_buttonMenu->addChildAtPosition(closeBtn, Anchor::Bottom, ccp(0, 30));
