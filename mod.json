@@ -1,20 +1,14 @@
 {
-	"geode": "5.11.1",
+	"geode": "4.6.0",
 	"gd": {
-		"win": "2.2081"
+		"win": "2.2074",
+		"android": "2.2074",
+		"mac": "2.2074",
+		"ios": "2.2074"
 	},
-	"id": "andrei123459.levels",
-	"name": "Andrei123459 Levels",
-	"version": "v1.4.0",
+	"id": "andrei123459.multiplayer",
+	"name": "Andrei123459 Multiplayer",
+	"version": "v1.0.0",
 	"developer": "Andrei123459",
-	"description": "Adds a button in the Creator menu that shows the levels published by Andrei123459.",
-	"settings": {
-		"user-id": {
-			"type": "int",
-			"name": "User ID (Andrei123459)",
-			"description": "The <cy>User ID</c> (not account ID) used to load the levels.",
-			"default": 288956778,
-			"min": 0
-		}
-	}
+	"description": "Multiplayer Andrei123459 — te logheaza automat cu contul ANDREI123459 MULTYPLAYER."
 }
