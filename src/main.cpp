@@ -1,7 +1,40 @@
-// remove this forward declaration:
-// class MultiplayerPopup;
+#include <Geode/Geode.hpp>
+#include <Geode/modify/MenuLayer.hpp>
+#include <Geode/ui/Popup.hpp>
 
-// Place MultiplayerPopup definition first
+using namespace geode::prelude;
+
+#if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
+#include <Geode/ui/CCMenuItemSpriteExtra.hpp>
+#define CC_MENU_ITEM_EXTRA CCMenuItemSpriteExtra
+#elif __has_include(<Geode/ui/ButtonSprite.hpp>)
+#include <Geode/ui/ButtonSprite.hpp>
+#define CC_MENU_ITEM_EXTRA CCMenuItemSpriteExtra
+#else
+#define CC_MENU_ITEM_EXTRA CCMenuItemSpriteExtra
+#endif
+
+struct MultiplayerState {
+    std::string username;
+    bool connected = false;
+};
+
+static MultiplayerState g_mp;
+
+static constexpr char const* kMultiplayerUsername = "ANDREI123459 MULTYPLAYER";
+
+static CCNode* createButtonNode(char const* label) {
+    return ButtonSprite::create(label, 120.f, true, "goldFont.fnt", "GJ_button_01.png", 30.f, .8f);
+}
+
+static void ensureMultiplayerLoggedIn() {
+    g_mp.username = kMultiplayerUsername;
+    g_mp.connected = true;
+    Mod::get()->setSavedValue("mp-username", std::string(kMultiplayerUsername));
+}
+
+static void showMultiplayerMenu();
+
 class MultiplayerPopup : public Popup {
 protected:
     bool init() override {
@@ -14,6 +47,10 @@ protected:
         );
         label->setScale(.7f);
         m_mainLayer->addChildAtPosition(label, Anchor::Center, ccp(0, 20));
+
+        auto status = CCLabelBMFont::create("Esti conectat la multiplayer.", "chatFont.fnt");
+        status->setScale(.55f);
+        m_mainLayer->addChildAtPosition(status, Anchor::Center, ccp(0, -10));
 
         auto closeNode = createButtonNode("Inchide");
 #if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
@@ -46,87 +83,44 @@ public:
     }
 };
 
-// Now define MultiplayerLoginPopup (unchanged body)
-class MultiplayerLoginPopup : public Popup {
-protected:
-    TextInput* m_username = nullptr;
-    CCLabelBMFont* m_status = nullptr;
-    bool m_busy = false;
+static void showMultiplayerMenu() {
+    ensureMultiplayerLoggedIn();
+    if (auto popup = MultiplayerPopup::create()) {
+        popup->show();
+    }
+}
 
-    bool init() override {
-        if (!Popup::init(320.f, 200.f, "GJ_square01.png")) return false;
-        this->setTitle("Andrei123459 Multiplayer");
+$execute {
+    ensureMultiplayerLoggedIn();
+}
 
-        m_username = TextInput::create(260.f, "Nume jucator", "bigFont.fnt");
-        m_username->setCommonFilter(CommonFilter::Any);
-        m_username->setMaxCharCount(20);
-        m_mainLayer->addChildAtPosition(m_username, Anchor::Center, ccp(0, 25));
+class $modify(AndreiMultiplayerMenuLayer, MenuLayer) {
+    bool init() {
+        if (!MenuLayer::init()) return false;
 
-        m_status = CCLabelBMFont::create("Alege un nume ca sa joci online", "chatFont.fnt");
-        m_status->setScale(.7f);
-        m_mainLayer->addChildAtPosition(m_status, Anchor::Center, ccp(0, -15));
-
-        auto loginNode = createButtonNode("Joaca");
-#if __has_include(<Geode/ui/CCMenuItemSpriteExtra.hpp>)
-        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
-            loginNode, nullptr, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
+        auto spr = ButtonSprite::create(
+            "Andrei123459 Multiplayer",
+            200.f,
+            true,
+            "goldFont.fnt",
+            "GJ_button_01.png",
+            30.f,
+            .55f
         );
-#elif __has_include(<Geode/ui/ButtonSprite.hpp>)
-        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
-            loginNode, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
+        auto btn = CCMenuItemSpriteExtra::create(
+            spr, this, menu_selector(AndreiMultiplayerMenuLayer::onMultiplayer)
         );
-#else
-        auto loginBtn = CC_MENU_ITEM_EXTRA::create(
-            loginNode, nullptr, nullptr, this, menu_selector(MultiplayerLoginPopup::onLogin)
-        );
-#endif
-        m_buttonMenu->addChildAtPosition(loginBtn, Anchor::Bottom, ccp(0, 30));
+        btn->setID("andrei-multiplayer-button"_spr);
+
+        if (auto menu = this->getChildByID("bottom-menu")) {
+            menu->addChild(btn);
+            menu->updateLayout();
+        }
 
         return true;
     }
 
-    void setStatus(std::string text) {
-        if (m_status) m_status->setString(text.c_str());
-    }
-
-    void onLogin(CCObject*) {
-        if (m_busy) return;
-
-        std::string name = m_username ? std::string(m_username->getString()) : "";
-        name = trimString(name);
-
-        if (name.size() < 2) {
-            this->setStatus("Numele trebuie sa aiba minim 2 caractere.");
-            return;
-        }
-        if (name.size() > 20) {
-            this->setStatus("Numele este prea lung (max 20).");
-            return;
-        }
-
-        m_busy = true;
-        this->setStatus("Se salveaza...");
-
-        Mod::get()->setSavedValue("mp-username", name);
-        g_mp.username = name;
-        g_mp.connected = true;
-
-        m_busy = false;
-        this->onClose(nullptr);
-
-        if (auto p = MultiplayerPopup::create()) { // now valid because MultiplayerPopup is defined
-            p->show();
-        }
-    }
-
-public:
-    static MultiplayerLoginPopup* create() {
-        auto ret = new MultiplayerLoginPopup();
-        if (ret->init()) {
-            ret->autorelease();
-            return ret;
-        }
-        delete ret;
-        return nullptr;
+    void onMultiplayer(CCObject*) {
+        showMultiplayerMenu();
     }
 };
